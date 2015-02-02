@@ -1,9 +1,9 @@
 var Carte = function() {
 
-    var saveName = './datas/Save 6.json';
+    var saveName = './datas/Save 4.json';
     // var saveName = '/Users/konogan.cossec/Library/Application Support/Steam/steamapps/common/Stranded Deep/Stranded_Deep_x64.app/Contents/Data/Save.json';
     var carte = {};
-    carte.onlyIsland = false;
+    carte.onlyIsland = true;
     carte.showInfos = false;
     carte.tileSize = 256;
     carte.scale = 0.1;
@@ -40,7 +40,7 @@ var Carte = function() {
       for (key in carte.TerrainGenerationNodes) {
 
         node = carte.TerrainGenerationNodes[key];
-        var geo = new THREE.BoxGeometry(256 , 256 , 256);
+        var geo = new THREE.BoxGeometry(255 , 255 , 255);
         var mat = getMat(node.biome);
         var tile = new THREE.Mesh(geo, mat);
 
@@ -52,8 +52,8 @@ var Carte = function() {
         tile.scale.y = carte.scale;
         tile.scale.z = carte.scale;
 
-        tile.position.x = pos.x;
-        tile.position.y = pos.y;
+        tile.position.x = pos.x ;
+        tile.position.y = pos.y  ;
         tile.position.z = pos.z;
         scene.add(tile);
         buildObjects(node.Objects, node.positionOffset);
@@ -61,7 +61,9 @@ var Carte = function() {
     };
 
     carte.moveCam = function() {
-      camera.lookAt(new THREE.Vector3(carte.camPos.x, carte.camPos.y, carte.camPos.y));
+      //camera.lookAt(new THREE.Vector3(carte.camPos.x, carte.camPos.y, carte.camPos.y));
+      controls.target = new THREE.Vector3(carte.camPos.x, carte.camPos.y, carte.camPos.y);
+
       animate();
     };
 
@@ -70,6 +72,7 @@ var Carte = function() {
       carte.buildNodes(carte.TerrainGenerationNodes);
 
       playerPositionLocale = normalizeStranded(carte.jsonFromSave.PlayerMovement.Transform.localPosition);
+      playerPositionLocale.x = playerPositionLocale.x * -1;
       worldPosistion = normalizeStranded(carte.jsonFromSave.TerrainGeneration.WorldOriginPoint);
       playerPosition = addPos(playerPositionLocale, worldPosistion);
       carte.camPos = pos2Three(playerPosition);
@@ -150,6 +153,7 @@ var Carte = function() {
             break;
           case key.indexOf('PALM_TREE') != -1:
             buildObject('PALM_TREE', obj, nodePos);
+            console.log(obj);
             break;
           case key.indexOf('COCONUT') != -1:
             buildObject('COCONUT', obj, nodePos);
@@ -174,9 +178,14 @@ var Carte = function() {
     };
 
     var buildObject = function(type, strandedObject, nodePos) {
+
+
       var threeObj = getObj(type);
 
-      var pos = pos2Three(addPos(normalizeStranded(strandedObject.Transform.localPosition), normalizeStranded(nodePos)));
+      var temp = normalizeStranded(strandedObject.Transform.localPosition);
+      temp.x = temp.x * -1;
+
+      var pos = pos2Three(addPos(temp, normalizeStranded(nodePos)));
 
       threeObj.position.x = pos.x;
       threeObj.position.y = pos.y;
@@ -234,7 +243,7 @@ var Carte = function() {
           var mat = new THREE.MeshBasicMaterial({color: 'yellow', wireframe: false, opacity: .8, transparent: true});
           break;
         case 'PALM_TREE' :
-          var mesh = new THREE.BoxGeometry(1 , 8 , 1);
+          var mesh = new THREE.BoxGeometry(.35 , 8 , .35);
           var mat = new THREE.MeshBasicMaterial({color: 'green'});
           break;
         case 'FOUNDATION' :
@@ -250,7 +259,7 @@ var Carte = function() {
           var mat = new THREE.MeshBasicMaterial({color: 'green'});
           break;
         case 'ENGINE' :
-          var mesh = new THREE.SphereGeometry(.1, .1, .1);
+          var mesh = new THREE.SphereGeometry(1, 1, 1);
           var mat = new THREE.MeshBasicMaterial({color: 'orange'});
           break;
          case 'RAFT' :
@@ -330,7 +339,8 @@ var Carte = function() {
         wireframe: false,
         color: colorTex,
         opacity: opacity,
-        transparent: transparent
+        transparent: transparent,
+        side: THREE.DoubleSide
       });
 
     };
