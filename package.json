@@ -1,0 +1,14 @@
+{
+  "name": "deepExpress",
+  "version": "0.0.1",
+  "author": "Konogan",
+  "private": true,
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "*",
+    "express.io": "*",
+    "jade": "*"
+  }
+}
