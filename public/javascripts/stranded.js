@@ -9,6 +9,9 @@ var StrandThree = {};
 /** @type {Bool} biomes in 3D ? */
 StrandThree.display3d = true;
 
+/** @type {Bool} axis ? */
+StrandThree.showAxis = true;
+
 /** @type {Bool} sky in 3D ? */
 StrandThree.displaySky = false;
 
@@ -16,7 +19,7 @@ StrandThree.displaySky = false;
 StrandThree.tileSize = 256;
 
 /** @type {Number}  espacement entre les elements */
-StrandThree.tileSpacer = 3;
+StrandThree.tileSpacer = 1;
 
 /** @type {Array}   */
 StrandThree.tiles = [];
@@ -29,6 +32,9 @@ StrandThree.jumpOnClick = false;
 
 /** @type {Object} Liste des biomes */
 StrandThree.biomes = {};
+
+
+
 
 StrandThree.biomes['BARREN'] = {
   material: new THREE.MeshLambertMaterial({color: 'blue', wireframe: false, opacity: .8, transparent: true}),
@@ -73,7 +79,7 @@ StrandThree.drawGrid = function(data) {
     if (data[i].type === 'ISLAND') {
       // add island geometry
       var isle = StrandThree.ISLAND(data[i]);
-      StrandThree.Objects.push(isle);
+      //StrandThree.Objects.push(isle);
       scene.add(isle);
     }
   }
@@ -87,16 +93,18 @@ StrandThree.drawGrid = function(data) {
  * @return {void}
  */
 StrandThree.draw3DNode = function(data) {
-
   var tile = new THREE.Mesh(
     new THREE.BoxGeometry(StrandThree.tileSize - StrandThree.tileSpacer, StrandThree.tileSize - StrandThree.tileSpacer, StrandThree.tileSize - StrandThree.tileSpacer),
     StrandThree.biomes[data.type].material
   );
   tile.overdraw = true;
   tile.position.x = data.coord.x;
-  tile.position.y = data.coord.y - (StrandThree.tileSize) - StrandThree.tileSpacer;
+  tile.position.y = data.coord.y - (StrandThree.tileSize) + data.coord.height;
   tile.position.z = data.coord.z;
   tile.material.side = THREE.DoubleSide;
+  if (!data.fullyGenerated) {
+    //tile.material.wireframe = 'grey';
+  }
   tile.name = 'tile_' + data.id;
   StrandThree.tiles[data.id] = tile;
   StrandThree.Objects.push(StrandThree.tiles[data.id]);
@@ -109,15 +117,17 @@ StrandThree.draw3DNode = function(data) {
  * @return {void}
  */
 StrandThree.draw2DNode = function(data) {
+
   var tile = new THREE.Mesh(
     new THREE.PlaneBufferGeometry(StrandThree.tileSize - StrandThree.tileSpacer, StrandThree.tileSize - StrandThree.tileSpacer),
     StrandThree.biomes[data.type].material
   );
   tile.overdraw = true;
   tile.position.x = data.coord.x;
-  tile.position.y = data.coord.y - (StrandThree.tileSize / 2) - StrandThree.tileSpacer;
+  tile.position.y = data.coord.y - (StrandThree.tileSize / 2) + data.coord.height;
   tile.position.z = data.coord.z;
   tile.material.side = THREE.DoubleSide;
+
   tile.rotation.x = Math.PI / 2;
   tile.name = 'tile_' + data.id;
   StrandThree.tiles[data.id] = tile;
@@ -218,7 +228,7 @@ StrandThree.ISLAND = function(data) {
   ISLAND.scale.z = 1;
   ISLAND.name = 'ISLAND ' + data.id;
   ISLAND.position.x = data.coord.x;
-  ISLAND.position.y = data.coord.y - (StrandThree.tileSize / 2);
+  ISLAND.position.y = data.coord.y - (StrandThree.tileSize / 2) + data.coord.height;
   ISLAND.position.z = data.coord.z;
   return ISLAND;
 };
@@ -228,13 +238,14 @@ StrandThree.ISLAND = function(data) {
 // Listen for  events.
 io.on('testCube', StrandThree.test);
 
-io.on('showAxis', StrandThree.showAxis);
+//io.on('showAxis', StrandThree.showAxis);
 
 io.on('drawPlayer', function(data) {
   StrandThree.drawPlayer(data);
 });
 
 io.on('drawGrid', function(gridData) {
+  console.log(gridData);
   StrandThree.drawGrid(gridData);
 });
 
@@ -265,8 +276,8 @@ function initGui() {
   var f1 = gui.addFolder('Global Display');
   var controllerSky = f1.add(gui.params, 'showSky');
   var controllerAlpha = f1.add(gui.params, 'transparency', 0, 100);
-  var controllerAxis = f1.add(gui.params, 'showAxis');
-  var controllerTrail = f1.add(gui.params, 'showPlayerTrail');
+  //var controllerAxis = f1.add(gui.params, 'showAxis');
+  //var controllerTrail = f1.add(gui.params, 'showPlayerTrail');
   //var controllerGrid = f1.add(gui.params, 'showGrid');
 
   var f2 = gui.addFolder('Objects Display');
@@ -274,16 +285,16 @@ function initGui() {
 
   var f3 = gui.addFolder('Informations');
   f3.add(gui.params, 'information').listen();
-  var controllerJump = f3.add(gui.params, 'jumpOnClick');
+  //var controllerJump = f3.add(gui.params, 'jumpOnClick');
   f3.open();
 
   controllerSky.onChange(function(value) {
     StrandThree.skyBox.visible = value;
   });
 
-  controllerAxis.onChange(function(value) {
-    StrandThree.axis.visible = value;
-  });
+  // controllerAxis.onChange(function(value) {
+  //   StrandThree.axis.visible = value;
+  // });
 
   controllerAlpha.onChange(function(value) {
     for (geo in StrandThree.Objects) {
@@ -294,9 +305,9 @@ function initGui() {
     }
   });
 
-  controllerJump.onChange(function(value) {
-    StrandThree.jumpOnClick = value;
-  });
+  // controllerJump.onChange(function(value) {
+  //   StrandThree.jumpOnClick = value;
+  // });
 
 }
 
