@@ -31,31 +31,30 @@ StrandThree.jumpOnClick = false;
 StrandThree.biomes = {};
 
 StrandThree.biomes['BARREN'] = {
-  material: new THREE.MeshBasicMaterial({color: 'blue', wireframe: false, opacity: .8, transparent: true}),
+  material: new THREE.MeshLambertMaterial({color: 'blue', wireframe: false, opacity: .8, transparent: true}),
   color: ''
 };
 StrandThree.biomes['ISLAND'] = {
-  material: new THREE.MeshBasicMaterial({color: 'yellow', wireframe: false, opacity: .1, transparent: false}),
+  material: new THREE.MeshLambertMaterial({color: 'blue', wireframe: false, opacity: .1, transparent: false}),
   color: ''
 };
 StrandThree.biomes['SAND_PLAINS'] = {
-  material: new THREE.MeshBasicMaterial({color: 'blue', wireframe: false, opacity: .8, transparent: true}),
+  material: new THREE.MeshLambertMaterial({color: 'blue', wireframe: false, opacity: .8, transparent: true}),
   color: ''
 };
 StrandThree.biomes['DEEP_SEA'] = {
-  material: new THREE.MeshBasicMaterial({color: 'blue', wireframe: false, opacity: .8, transparent: true}),
+  material: new THREE.MeshLambertMaterial({color: 'blue', wireframe: false, opacity: .8, transparent: true}),
   color: ''
 };
 StrandThree.biomes['BOTTOMLESS'] = {
-  material: new THREE.MeshBasicMaterial({color: 'blue', wireframe: false, opacity: .8, transparent: true}),
+  material: new THREE.MeshLambertMaterial({color: 'blue', wireframe: false, opacity: .8, transparent: true}),
   color: ''
 };
 StrandThree.biomes['SHALLOW_SAND_PLAINS'] = {
-  material: new THREE.MeshBasicMaterial({color: 'blue', wireframe: false, opacity: .8, transparent: true}),
+  material: new THREE.MeshLambertMaterial({color: 'blue', wireframe: false, opacity: .8, transparent: true}),
   color: ''
 };
 
-console.log(StrandThree.biomes);
 
 /**
  * [drawGrid description]
@@ -71,8 +70,16 @@ StrandThree.drawGrid = function(data) {
     else {
       StrandThree.draw2DNode(data[i]);
     }
+    if (data[i].type === 'ISLAND') {
+      // add island geometry
+      var isle = StrandThree.ISLAND(data[i]);
+      StrandThree.Objects.push(isle);
+      scene.add(isle);
+    }
   }
 };
+
+
 
 /**
  * dessine un biome en 3D
@@ -104,7 +111,7 @@ StrandThree.draw3DNode = function(data) {
 StrandThree.draw2DNode = function(data) {
   var tile = new THREE.Mesh(
     new THREE.PlaneBufferGeometry(StrandThree.tileSize - StrandThree.tileSpacer, StrandThree.tileSize - StrandThree.tileSpacer),
-    new THREE.MeshNormalMaterial()
+    StrandThree.biomes[data.type].material
   );
   tile.overdraw = true;
   tile.position.x = data.coord.x;
@@ -183,13 +190,38 @@ StrandThree.showAxis = function() {
  */
 StrandThree.test = function() {
   //console.log('test');
-  var cube = new THREE.Mesh(
-    new THREE.BoxGeometry(StrandThree.tileSize, StrandThree.tileSize, StrandThree.tileSize),
-    new THREE.MeshNormalMaterial());
-  cube.overdraw = true;
-  scene.add(cube);
+  var test = new THREE.Mesh(
+    new THREE.SphereGeometry(60, 64, 16, 0, 2 * Math.PI, 0, Math.PI / 2),
+    new THREE.MeshBasicMaterial({color: 'yellow', wireframe: false})
+    );
+  test.overdraw = true;
+  test.scale.x = 1;
+  test.scale.y = .1;
+  test.scale.z = 1;
+
+  scene.add(test);
 };
 
+/**
+ * Retourne la geometrie d'une ile
+ * @param {Object} data
+ * @return {Object}
+ */
+StrandThree.ISLAND = function(data) {
+  var ISLAND = new THREE.Mesh(
+    new THREE.SphereGeometry(60, 64, 16, 0, 2 * Math.PI, 0, Math.PI / 2),
+    new THREE.MeshLambertMaterial({color: 'yellow'})
+  );
+  ISLAND.overdraw = true;
+  ISLAND.scale.x = 1;
+  ISLAND.scale.y = .1;
+  ISLAND.scale.z = 1;
+  ISLAND.name = 'ISLAND ' + data.id;
+  ISLAND.position.x = data.coord.x;
+  ISLAND.position.y = data.coord.y - (StrandThree.tileSize / 2);
+  ISLAND.position.z = data.coord.z;
+  return ISLAND;
+};
 
 
 
@@ -285,7 +317,7 @@ function init() {
 
   // lights
   light = new THREE.PointLight(0xffffff);
-  light.position.set(0, 250, 0);
+  light.position.set(0, 2500, 0);
   scene.add(light);
 
 
