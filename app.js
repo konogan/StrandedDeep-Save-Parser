@@ -8,6 +8,8 @@ var env = process.env.NODE_ENV || 'development';
 var config = require('./config');
 var strandedParser = require('./lib/strandedParser.js');
 strandedParser.load(config.saveFolder + config.saveFile);
+
+
 app.http().io();
 
 // environments
@@ -34,7 +36,7 @@ app.io.route('three ready', function(req) {
     req.io.emit('showAxis');
     req.io.emit('drawPlayer', strandedParser.getPlayerPos());
     req.io.emit('drawGrid', strandedParser.getGrid());
-    req.io.emit('drawBiomeList', strandedParser.getAllBiomesType());
+    console.log(strandedParser.getAllBiomesType());
 });
 
 

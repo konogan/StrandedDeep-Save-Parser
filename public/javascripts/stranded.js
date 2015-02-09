@@ -7,10 +7,10 @@ var gui = new dat.GUI();
 var StrandThree = {};
 
 /** @type {Bool} biomes in 3D ? */
-StrandThree.display3d = false;
+StrandThree.display3d = true;
 
 /** @type {Bool} sky in 3D ? */
-StrandThree.displaySky = true;
+StrandThree.displaySky = false;
 
 /** @type {Number}  taille dun biome */
 StrandThree.tileSize = 256;
@@ -25,7 +25,37 @@ StrandThree.tiles = [];
 StrandThree.Objects = [];
 
 /** @type {Bool}  Se deplacer en cliquant */
-StrandThree.jumpOnClick = true;
+StrandThree.jumpOnClick = false;
+
+/** @type {Object} Liste des biomes */
+StrandThree.biomes = {};
+
+StrandThree.biomes['BARREN'] = {
+  material: new THREE.MeshBasicMaterial({color: 'blue', wireframe: false, opacity: .8, transparent: true}),
+  color: ''
+};
+StrandThree.biomes['ISLAND'] = {
+  material: new THREE.MeshBasicMaterial({color: 'yellow', wireframe: false, opacity: .1, transparent: false}),
+  color: ''
+};
+StrandThree.biomes['SAND_PLAINS'] = {
+  material: new THREE.MeshBasicMaterial({color: 'blue', wireframe: false, opacity: .8, transparent: true}),
+  color: ''
+};
+StrandThree.biomes['DEEP_SEA'] = {
+  material: new THREE.MeshBasicMaterial({color: 'blue', wireframe: false, opacity: .8, transparent: true}),
+  color: ''
+};
+StrandThree.biomes['BOTTOMLESS'] = {
+  material: new THREE.MeshBasicMaterial({color: 'blue', wireframe: false, opacity: .8, transparent: true}),
+  color: ''
+};
+StrandThree.biomes['SHALLOW_SAND_PLAINS'] = {
+  material: new THREE.MeshBasicMaterial({color: 'blue', wireframe: false, opacity: .8, transparent: true}),
+  color: ''
+};
+
+console.log(StrandThree.biomes);
 
 /**
  * [drawGrid description]
@@ -33,7 +63,7 @@ StrandThree.jumpOnClick = true;
  * @return {void}
  */
 StrandThree.drawGrid = function(data) {
-  console.log('drawGrid');
+  //console.log('drawGrid');
   for (var i = data.length - 1; i >= 0; i--) {
     if (StrandThree.display3d) {
       StrandThree.draw3DNode(data[i]);
@@ -50,14 +80,16 @@ StrandThree.drawGrid = function(data) {
  * @return {void}
  */
 StrandThree.draw3DNode = function(data) {
+
   var tile = new THREE.Mesh(
     new THREE.BoxGeometry(StrandThree.tileSize - StrandThree.tileSpacer, StrandThree.tileSize - StrandThree.tileSpacer, StrandThree.tileSize - StrandThree.tileSpacer),
-    new THREE.MeshNormalMaterial()
+    StrandThree.biomes[data.type].material
   );
   tile.overdraw = true;
   tile.position.x = data.coord.x;
-  tile.position.y = data.coord.y - (StrandThree.tileSize / 2);
+  tile.position.y = data.coord.y - (StrandThree.tileSize) - StrandThree.tileSpacer;
   tile.position.z = data.coord.z;
+  tile.material.side = THREE.DoubleSide;
   tile.name = 'tile_' + data.id;
   StrandThree.tiles[data.id] = tile;
   StrandThree.Objects.push(StrandThree.tiles[data.id]);
@@ -150,7 +182,7 @@ StrandThree.showAxis = function() {
  * @return {void}
  */
 StrandThree.test = function() {
-  console.log('test');
+  //console.log('test');
   var cube = new THREE.Mesh(
     new THREE.BoxGeometry(StrandThree.tileSize, StrandThree.tileSize, StrandThree.tileSize),
     new THREE.MeshNormalMaterial());
@@ -158,14 +190,7 @@ StrandThree.test = function() {
   scene.add(cube);
 };
 
-/**
- * Ajoute les biomes
- * @param  {Array} biomesList
- * @return {void}
- */
- StrandThree.implementBiomes = function(biomesList) {
 
- };
 
 
 // Listen for  events.
@@ -177,13 +202,10 @@ io.on('drawPlayer', function(data) {
   StrandThree.drawPlayer(data);
 });
 
-io.on('drawGrid', function(data) {
-  StrandThree.drawGrid(data);
+io.on('drawGrid', function(gridData) {
+  StrandThree.drawGrid(gridData);
 });
 
-io.on('drawBiomeList', function(data) {
-  StrandThree.implementBiomes(data);
-});
 
 
 
@@ -266,7 +288,7 @@ function init() {
   light.position.set(0, 250, 0);
   scene.add(light);
 
-  if (StrandThree.displaySky) {
+
     var imagePrefix = 'images/';
     var directions = ['px', 'nx', 'py', 'ny', 'pz', 'nz'];
     var imageSuffix = '.jpg';
@@ -282,8 +304,9 @@ function init() {
     var skyMaterial = new THREE.MeshFaceMaterial(materialArray);
     StrandThree.skyBox = new THREE.Mesh(skyGeometry, skyMaterial);
     StrandThree.skyBox.name = 'SKY';
+    StrandThree.skyBox.visible = StrandThree.displaySky;
     scene.add(StrandThree.skyBox);
-  }
+
 
   // si les biomes ne sont pas en 3D on met un plan pour representer la mer que l'on recouvrira d'une grille
   if (!StrandThree.display3d) {
@@ -294,8 +317,6 @@ function init() {
   renderer.setClearColor(0xffffff);
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
-
-
 
   container = document.getElementById('container');
   container.appendChild(renderer.domElement);
