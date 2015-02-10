@@ -36,6 +36,7 @@ app.io.route('three ready', function(req) {
     req.io.emit('showAxis');
     req.io.emit('drawPlayer', strandedParser.getPlayerPos());
     req.io.emit('drawGrid', strandedParser.getGrid());
+
 });
 
 
@@ -50,7 +51,7 @@ app.get('/', function(req, res) {
 //
 fs.watchFile(config.saveFolder + config.saveFile, function(curr, prev) {
     if (curr.mtime.valueOf() != prev.mtime.valueOf() || curr.ctime.valueOf() != prev.ctime.valueOf() || true) {
-        console.log('fileChange');
+        //console.log('fileChange');
         // do stuff
         strandedParser.reload(config.saveFolder + config.saveFile);
     }

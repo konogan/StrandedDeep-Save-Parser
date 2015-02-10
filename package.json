@@ -9,6 +9,8 @@
   "dependencies": {
     "express": "*",
     "express.io": "*",
-    "jade": "*"
+    "jade": "*",
+    "moment": "^2.9.0",
+    "nedb": "^1.1.1"
   }
 }

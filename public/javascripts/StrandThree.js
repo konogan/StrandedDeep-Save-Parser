@@ -3,7 +3,7 @@ var io = io.connect();
 
 var container; // DOM
 var camera, controls, scene, renderer, mouseVector; // THREE
-var gui = new dat.GUI();
+//var gui = new dat.GUI();
 var StrandThree = {};
 
 /** @type {Bool} biomes in 3D ? */
@@ -30,36 +30,8 @@ StrandThree.Objects = [];
 /** @type {Bool}  Se deplacer en cliquant */
 StrandThree.jumpOnClick = false;
 
-/** @type {Object} Liste des biomes */
-StrandThree.biomes = {};
 
 
-
-
-StrandThree.biomes['BARREN'] = {
-  material: new THREE.MeshLambertMaterial({color: 'blue', wireframe: false, opacity: .8, transparent: true}),
-  color: ''
-};
-StrandThree.biomes['ISLAND'] = {
-  material: new THREE.MeshLambertMaterial({color: 'blue', wireframe: false, opacity: .1, transparent: false}),
-  color: ''
-};
-StrandThree.biomes['SAND_PLAINS'] = {
-  material: new THREE.MeshLambertMaterial({color: 'blue', wireframe: false, opacity: .8, transparent: true}),
-  color: ''
-};
-StrandThree.biomes['DEEP_SEA'] = {
-  material: new THREE.MeshLambertMaterial({color: 'blue', wireframe: false, opacity: .8, transparent: true}),
-  color: ''
-};
-StrandThree.biomes['BOTTOMLESS'] = {
-  material: new THREE.MeshLambertMaterial({color: 'blue', wireframe: false, opacity: .8, transparent: true}),
-  color: ''
-};
-StrandThree.biomes['SHALLOW_SAND_PLAINS'] = {
-  material: new THREE.MeshLambertMaterial({color: 'blue', wireframe: false, opacity: .8, transparent: true}),
-  color: ''
-};
 
 
 /**
@@ -78,7 +50,7 @@ StrandThree.drawGrid = function(data) {
     }
     if (data[i].type === 'ISLAND') {
       // add island geometry
-      var isle = StrandThree.ISLAND(data[i]);
+      var isle = StrandThreeObj.ISLAND(data[i]);
       //StrandThree.Objects.push(isle);
       scene.add(isle);
     }
@@ -95,7 +67,7 @@ StrandThree.drawGrid = function(data) {
 StrandThree.draw3DNode = function(data) {
   var tile = new THREE.Mesh(
     new THREE.BoxGeometry(StrandThree.tileSize - StrandThree.tileSpacer, StrandThree.tileSize - StrandThree.tileSpacer, StrandThree.tileSize - StrandThree.tileSpacer),
-    StrandThree.biomes[data.type].material
+    StrandThreeObj.biomesTypes[data.type].material
   );
   tile.overdraw = true;
   tile.position.x = data.coord.x;
@@ -120,7 +92,7 @@ StrandThree.draw2DNode = function(data) {
 
   var tile = new THREE.Mesh(
     new THREE.PlaneBufferGeometry(StrandThree.tileSize - StrandThree.tileSpacer, StrandThree.tileSize - StrandThree.tileSpacer),
-    StrandThree.biomes[data.type].material
+    StrandThreeObj.biomesTypes[data.type].material
   );
   tile.overdraw = true;
   tile.position.x = data.coord.x;
@@ -152,6 +124,25 @@ StrandThree.drawPlayer = function(data) {
   StrandThree.movePlayerTo(data, true);
 };
 
+
+/**
+ * [drawPlayer description]
+ * @param  {[type]} dbData
+ * @return {void}
+ */
+StrandThree.drawPlayerPath = function(dbData) {
+  // get initial pos
+  console.log('drawPlayerPath', dbData);
+  /*StrandThree.player = new THREE.Mesh(
+    new THREE.BoxGeometry(10, 100, 10),
+    new THREE.MeshNormalMaterial());
+  StrandThree.player.name = 'Player';
+  StrandThree.player.overdraw = true;
+  scene.add(StrandThree.player);
+  StrandThree.Objects.push(StrandThree.player);
+  StrandThree.movePlayerTo(data, true);*/
+};
+
 /**
  * Deplace le marqueur du joeur a une position donnee
  * @param  {Object} data coord
@@ -161,7 +152,7 @@ StrandThree.drawPlayer = function(data) {
 StrandThree.movePlayerTo = function(data, path) {
   if (path) {
     var prevPos = StrandThree.player.position;
-    drawLineBetweenCoord(prevPos, data);
+    StrandThree.drawLineBetweenCoord(prevPos, data);
   }
   StrandThree.player.position.x = data.x;
   StrandThree.player.position.y = data.y;
@@ -212,57 +203,14 @@ StrandThree.test = function() {
   scene.add(test);
 };
 
+
+
+
 /**
- * Retourne la geometrie d'une ile
- * @param {Object} data
- * @return {Object}
+ * [initGui description]
+ * @return {void} [description]
  */
-StrandThree.ISLAND = function(data) {
-  var ISLAND = new THREE.Mesh(
-    new THREE.SphereGeometry(60, 64, 16, 0, 2 * Math.PI, 0, Math.PI / 2),
-    new THREE.MeshLambertMaterial({color: 'yellow'})
-  );
-  ISLAND.overdraw = true;
-  ISLAND.scale.x = 1;
-  ISLAND.scale.y = .1;
-  ISLAND.scale.z = 1;
-  ISLAND.name = 'ISLAND ' + data.id;
-  ISLAND.position.x = data.coord.x;
-  ISLAND.position.y = data.coord.y - (StrandThree.tileSize / 2) + data.coord.height;
-  ISLAND.position.z = data.coord.z;
-  return ISLAND;
-};
-
-
-
-// Listen for  events.
-io.on('testCube', StrandThree.test);
-
-//io.on('showAxis', StrandThree.showAxis);
-
-io.on('drawPlayer', function(data) {
-  StrandThree.drawPlayer(data);
-});
-
-io.on('drawGrid', function(gridData) {
-  console.log(gridData);
-  StrandThree.drawGrid(gridData);
-});
-
-
-
-
-$(function() {
-  io.emit('dom ready');
-  init();
-
-  initGui();
-});
-
-
-function initGui() {
-
-
+StrandThree.initGui = function() {
   gui.params = {
     showSky: StrandThree.displaySky,
     transparency: 90,
@@ -309,12 +257,54 @@ function initGui() {
   //   StrandThree.jumpOnClick = value;
   // });
 
+};
+
+
+/**
+ * [buildAxis description]
+ * @param  {[type]} src      [description]
+ * @param  {[type]} dst      [description]
+ * @param  {[type]} colorHex [description]
+ * @param  {[type]} dashed   [description]
+ * @return {[type]}          [description]
+ */
+function buildAxis(src, dst, colorHex, dashed) {
+  var geom = new THREE.Geometry(), mat;
+  if (dashed) {
+    mat = new THREE.LineDashedMaterial({ linewidth: 3, color: colorHex, dashSize: 3, gapSize: 3 });
+  } else {
+    mat = new THREE.LineBasicMaterial({ linewidth: 3, color: colorHex });
+  }
+  geom.vertices.push(src.clone());
+  geom.vertices.push(dst.clone());
+  geom.computeLineDistances();
+  var axis = new THREE.Line(geom, mat, THREE.LinePieces);
+  return axis;
 }
 
+/**
+ * drawLineBetweenCoord description
+ * @param  {Object} pos1
+ * @param  {object} pos2
+ * @return {void}
+ */
+StrandThree.drawLineBetweenCoord = function(pos1, pos2) {
+  var geometry = new THREE.Geometry();
+  geometry.vertices.push(new THREE.Vector3(pos1.x, pos1.y, pos1.z));
+  geometry.vertices.push(new THREE.Vector3(pos2.x, pos2.y, pos2.z));
+  var material = new THREE.LineBasicMaterial({color: 0xff0000});
+  var line = new THREE.Line(geometry, material);
+  scene.add(line);
+};
 
 
-function init() {
 
+
+/**
+ * [initThree description]
+ * @return {void} [description]
+ */
+StrandThree.initThree = function() {
   camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 100000);
   camera.position.set(StrandThree.tileSize, StrandThree.tileSize, StrandThree.tileSize);
   camera.lookAt(new THREE.Vector3(0, 0, 0));
@@ -369,8 +359,12 @@ function init() {
 
   // Emit ready event.
   io.emit('three ready');
-}
+};
 
+/**
+ * [onWindowResize description]
+ * @return {void} [description]
+ */
 function onWindowResize() {
   io.emit('three resize');
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -379,6 +373,11 @@ function onWindowResize() {
   render();
 }
 
+/**
+ * [onMouseClick description]
+ * @param  {event} event [description]
+ * @return {void}       [description]
+ */
 function onMouseClick(event) {
   io.emit('mouse click');
   var vector = new THREE.Vector3();
@@ -399,13 +398,12 @@ function onMouseClick(event) {
 
   var intersects = raycaster.intersectObjects(StrandThree.Objects);
   if (typeof intersects[0] != 'undefined' && typeof intersects[0].object != 'undefined') {
-    gui.params.information = intersects[0].object.name;
+    //gui.params.information = intersects[0].object.name;
+    /// console.log(intersects[0].object);
     if (StrandThree.jumpOnClick) {
       StrandThree.moveCam(intersects[0].object.position);
     }
   }
-
-  //console.log(intersects[0].object.name);
 }
 
 
@@ -417,36 +415,6 @@ function animate() {
 
 function render() {
   renderer.render(scene, camera);
-}
-
-
-function buildAxis(src, dst, colorHex, dashed) {
-  var geom = new THREE.Geometry(), mat;
-  if (dashed) {
-    mat = new THREE.LineDashedMaterial({ linewidth: 3, color: colorHex, dashSize: 3, gapSize: 3 });
-  } else {
-    mat = new THREE.LineBasicMaterial({ linewidth: 3, color: colorHex });
-  }
-  geom.vertices.push(src.clone());
-  geom.vertices.push(dst.clone());
-  geom.computeLineDistances();
-  var axis = new THREE.Line(geom, mat, THREE.LinePieces);
-  return axis;
-}
-
-/**
- * drawLineBetweenCoord description
- * @param  {Object} pos1
- * @param  {object} pos2
- * @return {void}
- */
-function drawLineBetweenCoord(pos1, pos2) {
-  var geometry = new THREE.Geometry();
-  geometry.vertices.push(new THREE.Vector3(pos1.x, pos1.y, pos1.z));
-  geometry.vertices.push(new THREE.Vector3(pos2.x, pos2.y, pos2.z));
-  var material = new THREE.LineBasicMaterial({color: 0xff0000});
-  var line = new THREE.Line(geometry, material);
-  scene.add(line);
 }
 
 
