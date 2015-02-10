@@ -12,10 +12,6 @@ $(function() {
 
   //io.on('showAxis', StrandThree.showAxis);
 
-  io.on('drawPlayer', function(data) {
-    StrandThree.drawPlayer(data);
-  });
-
   io.on('drawGrid', function(gridData) {
     StrandThree.drawGrid(gridData);
   });

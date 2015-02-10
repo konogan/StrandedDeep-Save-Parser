@@ -7,7 +7,7 @@ var camera, controls, scene, renderer, mouseVector; // THREE
 var StrandThree = {};
 
 /** @type {Bool} biomes in 3D ? */
-StrandThree.display3d = true;
+StrandThree.display3d = false;
 
 /** @type {Bool} axis ? */
 StrandThree.showAxis = true;
@@ -30,7 +30,8 @@ StrandThree.Objects = [];
 /** @type {Bool}  Se deplacer en cliquant */
 StrandThree.jumpOnClick = false;
 
-
+/** @type {Object} [description] */
+StrandThree.player = {};
 
 
 
@@ -70,9 +71,9 @@ StrandThree.draw3DNode = function(data) {
     StrandThreeObj.biomesTypes[data.type].material
   );
   tile.overdraw = true;
-  tile.position.x = data.coord.x;
-  tile.position.y = data.coord.y - (StrandThree.tileSize) + data.coord.height;
-  tile.position.z = data.coord.z;
+  tile.position.x = data.position.x;
+  tile.position.y = data.position.y - (StrandThree.tileSize) + data.position.height;
+  tile.position.z = data.position.z;
   tile.material.side = THREE.DoubleSide;
   if (!data.fullyGenerated) {
     //tile.material.wireframe = 'grey';
@@ -95,9 +96,9 @@ StrandThree.draw2DNode = function(data) {
     StrandThreeObj.biomesTypes[data.type].material
   );
   tile.overdraw = true;
-  tile.position.x = data.coord.x;
-  tile.position.y = data.coord.y - (StrandThree.tileSize / 2) + data.coord.height;
-  tile.position.z = data.coord.z;
+  tile.position.x = data.position.x;
+  tile.position.y = data.position.y - (StrandThree.tileSize / 2) + data.position.height;
+  tile.position.z = data.position.z;
   tile.material.side = THREE.DoubleSide;
 
   tile.rotation.x = Math.PI / 2;
@@ -114,14 +115,11 @@ StrandThree.draw2DNode = function(data) {
  * @return {void}
  */
 StrandThree.drawPlayer = function(data) {
-  StrandThree.player = new THREE.Mesh(
-    new THREE.BoxGeometry(10, 10, 10),
-    new THREE.MeshNormalMaterial());
-  StrandThree.player.name = 'Player';
-  StrandThree.player.overdraw = true;
+
+  StrandThree.player = StrandThreeObj.PLAYER(data);
+  console.log(StrandThree.player);
   scene.add(StrandThree.player);
-  StrandThree.Objects.push(StrandThree.player);
-  StrandThree.movePlayerTo(data, true);
+  //StrandThree.Objects.push(StrandThree.player);
 };
 
 
@@ -132,15 +130,20 @@ StrandThree.drawPlayer = function(data) {
  */
 StrandThree.drawPlayerPath = function(dbData) {
   // get initial pos
-  console.log('drawPlayerPath', dbData);
-  /*StrandThree.player = new THREE.Mesh(
-    new THREE.BoxGeometry(10, 100, 10),
-    new THREE.MeshNormalMaterial());
-  StrandThree.player.name = 'Player';
-  StrandThree.player.overdraw = true;
-  scene.add(StrandThree.player);
-  StrandThree.Objects.push(StrandThree.player);
-  StrandThree.movePlayerTo(data, true);*/
+
+  for (key in dbData) {
+      if (key == 0) {
+        console.log('initplayer');
+        console.log(dbData[key]);
+        StrandThree.drawPlayer(dbData[key]);
+      }
+      else {
+        //console.log('move player');
+        //console.log(dbData[key]);
+        //StrandThree.movePlayerTo(dbData[key], true);
+      }
+  }
+
 };
 
 /**
@@ -290,8 +293,8 @@ function buildAxis(src, dst, colorHex, dashed) {
  */
 StrandThree.drawLineBetweenCoord = function(pos1, pos2) {
   var geometry = new THREE.Geometry();
-  geometry.vertices.push(new THREE.Vector3(pos1.x, pos1.y, pos1.z));
-  geometry.vertices.push(new THREE.Vector3(pos2.x, pos2.y, pos2.z));
+  geometry.vertices.push(new THREE.Vector3(pos1.x, pos1.y + 20, pos1.z));
+  geometry.vertices.push(new THREE.Vector3(pos2.x, pos2.y + 20, pos2.z));
   var material = new THREE.LineBasicMaterial({color: 0xff0000});
   var line = new THREE.Line(geometry, material);
   scene.add(line);
