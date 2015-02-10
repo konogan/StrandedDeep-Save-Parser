@@ -119,6 +119,8 @@ StrandThree.drawPlayer = function(data) {
   StrandThree.player = StrandThreeObj.PLAYER(data);
   console.log(StrandThree.player);
   scene.add(StrandThree.player);
+  camera.lookAt(new THREE.Vector3(data.position.x, data.position.y, data.position.z));
+  render();
   //StrandThree.Objects.push(StrandThree.player);
 };
 
@@ -138,6 +140,7 @@ StrandThree.drawPlayerPath = function(dbData) {
         StrandThree.drawPlayer(dbData[key]);
       }
       else {
+        StrandThree.drawPlayer(dbData[key]);
         //console.log('move player');
         //console.log(dbData[key]);
         //StrandThree.movePlayerTo(dbData[key], true);
@@ -160,6 +163,7 @@ StrandThree.movePlayerTo = function(data, path) {
   StrandThree.player.position.x = data.x;
   StrandThree.player.position.y = data.y;
   StrandThree.player.position.z = data.z;
+
   render();
 };
 
@@ -315,6 +319,7 @@ StrandThree.initThree = function() {
   controls = new THREE.OrbitControls(camera);
   controls.damping = 0.2;
   controls.addEventListener('change', render);
+
   scene = new THREE.Scene();
 
   //scene.fog = new THREE.FogExp2(0xcccccc, 0.0002);

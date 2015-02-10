@@ -69,7 +69,6 @@ StrandThreeObj.PLAYER = function(data) {
     new THREE.MeshLambertMaterial({color: 'red'})
   );
   PLAYER.overdraw = true;
-
   PLAYER.name = 'PLAYER';
   PLAYER.position.x = data.position.x;
   PLAYER.position.y = data.position.y + 50;
