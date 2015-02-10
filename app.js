@@ -36,7 +36,7 @@ app.io.route('three ready', function(req) {
     req.io.emit('showAxis');
     req.io.emit('drawPlayer', strandedParser.getPlayerPos());
     req.io.emit('drawGrid', strandedParser.getGrid());
-
+    req.io.emit('drawPlayerPath', strandedParser.getAllPlayerPos());
 });
 
 

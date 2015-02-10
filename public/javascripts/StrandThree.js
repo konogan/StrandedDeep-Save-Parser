@@ -1,5 +1,5 @@
 // client JS
-var io = io.connect();
+// var io = io.connect();
 
 var container; // DOM
 var camera, controls, scene, renderer, mouseVector; // THREE
