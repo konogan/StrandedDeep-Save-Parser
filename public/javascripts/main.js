@@ -20,5 +20,8 @@ $(function() {
     StrandThree.drawPlayerPath(dbData);
   });
 
+  io.on('drawPlayer', function(data) {
+    StrandThree.drawPlayer(data);
+  });
 
 });

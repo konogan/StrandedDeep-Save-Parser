@@ -41,7 +41,6 @@ StrandThree.player = {};
  * @return {void}
  */
 StrandThree.drawGrid = function(data) {
-  //console.log('drawGrid');
   for (var i = data.length - 1; i >= 0; i--) {
     if (StrandThree.display3d) {
       StrandThree.draw3DNode(data[i]);
@@ -115,13 +114,9 @@ StrandThree.draw2DNode = function(data) {
  * @return {void}
  */
 StrandThree.drawPlayer = function(data) {
-
   StrandThree.player = StrandThreeObj.PLAYER(data);
-  console.log(StrandThree.player);
   scene.add(StrandThree.player);
-  camera.lookAt(new THREE.Vector3(data.position.x, data.position.y, data.position.z));
-  render();
-  //StrandThree.Objects.push(StrandThree.player);
+  StrandThree.Objects.push(StrandThree.player);
 };
 
 
@@ -131,22 +126,11 @@ StrandThree.drawPlayer = function(data) {
  * @return {void}
  */
 StrandThree.drawPlayerPath = function(dbData) {
-  // get initial pos
-
   for (key in dbData) {
-      if (key == 0) {
-        console.log('initplayer');
-        console.log(dbData[key]);
-        StrandThree.drawPlayer(dbData[key]);
-      }
-      else {
-        StrandThree.drawPlayer(dbData[key]);
-        //console.log('move player');
-        //console.log(dbData[key]);
-        //StrandThree.movePlayerTo(dbData[key], true);
-      }
+    if (key > 0) {
+      StrandThree.drawLineBetweenCoord(dbData[key - 1].position, dbData[key].position);
+    }
   }
-
 };
 
 /**
@@ -156,15 +140,10 @@ StrandThree.drawPlayerPath = function(dbData) {
  * @return {void}
  */
 StrandThree.movePlayerTo = function(data, path) {
-  if (path) {
-    var prevPos = StrandThree.player.position;
-    StrandThree.drawLineBetweenCoord(prevPos, data);
-  }
-  StrandThree.player.position.x = data.x;
-  StrandThree.player.position.y = data.y;
-  StrandThree.player.position.z = data.z;
-
-  render();
+  StrandThree.player.position.x = data.position.x;
+  StrandThree.player.position.y = data.position.y;
+  StrandThree.player.position.z = data.position.z;
+  StrandThree.moveCam(data.position);
 };
 
 /**
@@ -197,7 +176,6 @@ StrandThree.showAxis = function() {
  * @return {void}
  */
 StrandThree.test = function() {
-  //console.log('test');
   var test = new THREE.Mesh(
     new THREE.SphereGeometry(60, 64, 16, 0, 2 * Math.PI, 0, Math.PI / 2),
     new THREE.MeshBasicMaterial({color: 'yellow', wireframe: false})
@@ -296,10 +274,11 @@ function buildAxis(src, dst, colorHex, dashed) {
  * @return {void}
  */
 StrandThree.drawLineBetweenCoord = function(pos1, pos2) {
+
   var geometry = new THREE.Geometry();
   geometry.vertices.push(new THREE.Vector3(pos1.x, pos1.y + 20, pos1.z));
   geometry.vertices.push(new THREE.Vector3(pos2.x, pos2.y + 20, pos2.z));
-  var material = new THREE.LineBasicMaterial({color: 0xff0000});
+  var material = new THREE.LineBasicMaterial({color: 0xff0000,linewidth: 3});
   var line = new THREE.Line(geometry, material);
   scene.add(line);
 };
@@ -312,8 +291,8 @@ StrandThree.drawLineBetweenCoord = function(pos1, pos2) {
  * @return {void} [description]
  */
 StrandThree.initThree = function() {
-  camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 100000);
-  camera.position.set(StrandThree.tileSize, StrandThree.tileSize, StrandThree.tileSize);
+  camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 200000);
+  camera.position.set(500, 800, 250);
   camera.lookAt(new THREE.Vector3(0, 0, 0));
 
   controls = new THREE.OrbitControls(camera);
