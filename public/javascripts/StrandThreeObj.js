@@ -58,20 +58,22 @@ StrandThreeObj.ISLAND = function(data) {
 
 
 /**
- * Retourne la geometrie du joeur
- * @param {Object} data
+ * Retourne une geometrie Marker
+ * @param {Object} data  width data.position
+ * @param {String} color
  * @return {Object}
  */
-StrandThreeObj.PLAYER = function(data) {
-
-  var PLAYER = new THREE.Mesh(
+StrandThreeObj.MARKER = function(data, color) {
+  var MARKER = new THREE.Mesh(
     new THREE.CylinderGeometry(10, 0, 100, 50, 50, false),
-    new THREE.MeshLambertMaterial({color: 'red'})
+    new THREE.MeshLambertMaterial({color: color})
   );
-  PLAYER.overdraw = true;
-  PLAYER.name = 'PLAYER';
-  PLAYER.position.x = data.position.x;
-  PLAYER.position.y = data.position.y + 50;
-  PLAYER.position.z = data.position.z;
-  return PLAYER;
+  MARKER.overdraw = true;
+  MARKER.name = 'WORLD';
+  MARKER.position.x = data.position.x;
+  MARKER.position.y = data.position.y + 50;
+  MARKER.position.z = data.position.z;
+  return MARKER;
 };
+
+

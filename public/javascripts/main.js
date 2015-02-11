@@ -17,11 +17,12 @@ $(function() {
   });
 
   io.on('drawPlayerPath', function(dbData) {
-    StrandThree.drawPlayerPath(dbData);
+    //StrandThree.drawPlayerPath(dbData);
+    StrandThree.debugPath(dbData);
   });
 
   io.on('drawPlayer', function(data) {
-    StrandThree.drawPlayer(data);
+    //StrandThree.drawPlayer(data);
   });
 
 });

@@ -30,10 +30,6 @@ StrandThree.Objects = [];
 /** @type {Bool}  Se deplacer en cliquant */
 StrandThree.jumpOnClick = false;
 
-/** @type {Object} [description] */
-StrandThree.player = {};
-
-
 
 /**
  * [drawGrid description]
@@ -108,43 +104,58 @@ StrandThree.draw2DNode = function(data) {
 };
 
 
+
+
 /**
- * [drawPlayer description]
- * @param  {[type]} data
+ * [drawMarker description]
+ * @param  {[Object} data with position inside
+ * @param  {String} color
  * @return {void}
  */
-StrandThree.drawPlayer = function(data) {
-  StrandThree.player = StrandThreeObj.PLAYER(data);
-  scene.add(StrandThree.player);
-  StrandThree.Objects.push(StrandThree.player);
+StrandThree.drawMarker = function(data, color) {
+  var drawMarker = StrandThreeObj.MARKER(data, color);
+  scene.add(drawMarker);
+  //StrandThree.Objects.push(StrandThree.player);
 };
 
 
 /**
- * [drawPlayer description]
+ * [debugPath description]
  * @param  {[type]} dbData
  * @return {void}
  */
-StrandThree.drawPlayerPath = function(dbData) {
+StrandThree.debugPath = function(dbData) {
+  var player = {};
+  var world = {};
+  var palyerinworld = {};
+  world.prec = {};
+  player.prec = {};
+  palyerinworld.prec = {};
+
   for (key in dbData) {
-    if (key > 0) {
-      StrandThree.drawLineBetweenCoord(dbData[key - 1].position, dbData[key].position);
+    player.position = dbData[key].positionPlayer;
+    world.position = dbData[key].positionWorld;
+    palyerinworld.position = addPos(world.position, player.position);
+
+
+    StrandThree.drawMarker(world, 'blue');
+    StrandThree.drawMarker(world, 'blue');
+    StrandThree.drawMarker(palyerinworld, 'green');
+
+    if (parseInt(key) > 0) {
+
+      world.prec.position = dbData[key - 1].positionWorld;
+      player.prec.position = dbData[key - 1].positionPlayer;
+      palyerinworld.prec.position = addPos(world.prec.position, player.prec.position);
+
+      StrandThree.drawLineBetweenCoord(player.prec, player, 'red');
+      StrandThree.drawLineBetweenCoord(world.prec, world, 'blue');
+      StrandThree.drawLineBetweenCoord(palyerinworld.prec, palyerinworld, 'green');
     }
   }
 };
 
-/**
- * Deplace le marqueur du joeur a une position donnee
- * @param  {Object} data coord
- * @param  {Bool} path  trace un chemin entre l'ancienne et la nouvelle position
- * @return {void}
- */
-StrandThree.movePlayerTo = function(data, path) {
-  StrandThree.player.position.x = data.position.x;
-  StrandThree.player.position.y = data.position.y;
-  StrandThree.player.position.z = data.position.z;
-  StrandThree.moveCam(data.position);
-};
+
 
 /**
  * Deplace le regard de la camera a un point
@@ -273,12 +284,13 @@ function buildAxis(src, dst, colorHex, dashed) {
  * @param  {object} pos2
  * @return {void}
  */
-StrandThree.drawLineBetweenCoord = function(pos1, pos2) {
+StrandThree.drawLineBetweenCoord = function(pos1, pos2, color) {
 
   var geometry = new THREE.Geometry();
-  geometry.vertices.push(new THREE.Vector3(pos1.x, pos1.y + 20, pos1.z));
-  geometry.vertices.push(new THREE.Vector3(pos2.x, pos2.y + 20, pos2.z));
-  var material = new THREE.LineBasicMaterial({color: 0xff0000,linewidth: 3});
+  geometry.vertices.push(new THREE.Vector3(pos1.position.x, pos1.position.y + 20, pos1.position.z));
+  geometry.vertices.push(new THREE.Vector3(pos2.position.x, pos2.position.y + 20, pos2.position.z));
+
+  var material = new THREE.LineBasicMaterial({color: color,linewidth: 3});
   var line = new THREE.Line(geometry, material);
   scene.add(line);
 };
@@ -404,6 +416,18 @@ function render() {
   renderer.render(scene, camera);
 }
 
-
+/**
+ * additionne 2 positions dans l'espace
+ * @param {Object} posOne premiere position
+ * @param {Object} posTwo deuxieme position
+ * @return {Object} coordonnee resultante
+ */
+function addPos(posOne, posTwo) {
+  return {
+    x: parseInt(posOne.x * 1 + posTwo.x * 1),
+    y: parseInt(posOne.y * 1 + posTwo.y * 1),
+    z: parseInt(posOne.z * 1 + posTwo.z * 1)
+  };
+};
 
 
