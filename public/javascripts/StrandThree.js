@@ -7,7 +7,7 @@ var camera, controls, scene, renderer, mouseVector; // THREE
 var StrandThree = {};
 
 /** @type {Bool} biomes in 3D ? */
-StrandThree.display3d = false;
+StrandThree.display3d = true;
 
 /** @type {Bool} axis ? */
 StrandThree.showAxis = true;
@@ -37,34 +37,71 @@ StrandThree.jumpOnClick = false;
  * @return {void}
  */
 StrandThree.drawGrid = function(data) {
-  for (var i = data.length - 1; i >= 0; i--) {
+  for (nodeKey in data) {
     if (StrandThree.display3d) {
-      StrandThree.draw3DNode(data[i]);
+      StrandThree.draw3DNode(data[nodeKey], nodeKey, true);
     }
     else {
-      StrandThree.draw2DNode(data[i]);
+      StrandThree.draw2DNode(data[nodeKey]);
     }
-    if (data[i].type === 'ISLAND') {
+    if (data[nodeKey].type === 'ISLAND') {
       // add island geometry
-      var isle = StrandThreeObj.ISLAND(data[i]);
+      var isle = StrandThreeObj.ISLAND(data[nodeKey]);
+      isle.transparency = .2;
       //StrandThree.Objects.push(isle);
       scene.add(isle);
+    }
+    if (nodeKey == 3) {
+      //break;
     }
   }
 };
 
 
 
+
+
 /**
- * dessine un biome en 3D
+ * dessine un biome en 3D avec DEBUG
  * @param  {Object} data
+ * @param  {String} texte a afficher dans les face
+ * @param  {Bool} debug
  * @return {void}
  */
-StrandThree.draw3DNode = function(data) {
-  var tile = new THREE.Mesh(
+StrandThree.draw3DNode = function(data, texte , debug) {
+  if (!debug) {
+    var tile = new THREE.Mesh(
     new THREE.BoxGeometry(StrandThree.tileSize - StrandThree.tileSpacer, StrandThree.tileSize - StrandThree.tileSpacer, StrandThree.tileSize - StrandThree.tileSpacer),
     StrandThreeObj.biomesTypes[data.type].material
   );
+  }
+  else {
+    var canvas = document.createElement('canvas');
+    canvas.width = 255;
+    canvas.height = 255;
+    var context = canvas.getContext('2d');
+    context.font = '10pt Arial';
+    context.fillStyle = 'red';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = 'white';
+    context.fillRect(10, 10, canvas.width - 20, canvas.height - 20);
+    context.fillStyle = 'black';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText(texte + ' - ' + data.type, canvas.width / 2, canvas.height / 2);
+
+    var texture1 = new THREE.Texture(canvas);
+    texture1.needsUpdate = true;
+
+    var material1 = new THREE.MeshBasicMaterial({map: texture1, side: THREE.DoubleSide });
+    material1.transparent = true;
+
+
+    var tile = new THREE.Mesh(
+      new THREE.BoxGeometry(StrandThree.tileSize - StrandThree.tileSpacer, StrandThree.tileSize - StrandThree.tileSpacer, StrandThree.tileSize - StrandThree.tileSpacer, 1, 1, 1),
+      material1
+    );
+  }
   tile.overdraw = true;
   tile.position.x = data.position.x;
   tile.position.y = data.position.y - (StrandThree.tileSize) + data.position.height;
@@ -78,6 +115,9 @@ StrandThree.draw3DNode = function(data) {
   StrandThree.Objects.push(StrandThree.tiles[data.id]);
   scene.add(tile);
 };
+
+
+
 
 /**
  * dessine un biome en 2D
@@ -125,6 +165,7 @@ StrandThree.drawMarker = function(data, color) {
  * @return {void}
  */
 StrandThree.debugPath = function(dbData) {
+  StrandThree.showAxis();
   var player = {};
   var world = {};
   var palyerinworld = {};
@@ -133,19 +174,19 @@ StrandThree.debugPath = function(dbData) {
   palyerinworld.prec = {};
 
   for (key in dbData) {
-    player.position = dbData[key].positionPlayer;
-    world.position = dbData[key].positionWorld;
+    player = dbData[key].positionPlayer;
+    world = dbData[key].positionWorld;
     palyerinworld.position = addPos(world.position, player.position);
 
 
-    StrandThree.drawMarker(world, 'blue');
+    StrandThree.drawMarker(player, 'red');
     StrandThree.drawMarker(world, 'blue');
     StrandThree.drawMarker(palyerinworld, 'green');
 
     if (parseInt(key) > 0) {
 
-      world.prec.position = dbData[key - 1].positionWorld;
-      player.prec.position = dbData[key - 1].positionPlayer;
+      world.prec = dbData[key - 1].positionWorld;
+      player.prec = dbData[key - 1].positionPlayer;
       palyerinworld.prec.position = addPos(world.prec.position, player.prec.position);
 
       StrandThree.drawLineBetweenCoord(player.prec, player, 'red');
@@ -179,6 +220,7 @@ StrandThree.showAxis = function() {
   StrandThree.axis.add(buildAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, -length, 0), 0x00FF00, true)); // -Y
   StrandThree.axis.add(buildAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, length), 0x0000FF, false)); // +Z
   StrandThree.axis.add(buildAxis(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -length), 0x0000FF, true)); // -Z
+  StrandThree.axis.position.y = 50;
   scene.add(StrandThree.axis);
 };
 
@@ -275,6 +317,7 @@ function buildAxis(src, dst, colorHex, dashed) {
   geom.vertices.push(dst.clone());
   geom.computeLineDistances();
   var axis = new THREE.Line(geom, mat, THREE.LinePieces);
+
   return axis;
 }
 
@@ -360,6 +403,11 @@ StrandThree.initThree = function() {
   io.emit('three ready');
 };
 
+
+
+
+
+
 /**
  * [onWindowResize description]
  * @return {void} [description]
@@ -424,9 +472,9 @@ function render() {
  */
 function addPos(posOne, posTwo) {
   return {
-    x: parseInt(posOne.x * 1 + posTwo.x * 1),
-    y: parseInt(posOne.y * 1 + posTwo.y * 1),
-    z: parseInt(posOne.z * 1 + posTwo.z * 1)
+    x: parseInt(posOne.position.x * 1 + posTwo.position.x * 1),
+    y: parseInt(posOne.position.y * 1 + posTwo.position.y * 1),
+    z: parseInt(posOne.position.z * 1 + posTwo.position.z * 1)
   };
 };
 
