@@ -174,22 +174,25 @@ StrandThree.debugPath = function(dbData) {
   palyerinworld.prec = {};
 
   for (key in dbData) {
-    player = dbData[key].positionPlayer;
-    world = dbData[key].positionWorld;
-    palyerinworld.position = addPos(world.position, player.position);
+    player = dbData[key].player;
+    world = dbData[key].world;
 
+    palyerinworld.position = addPos(world, player);
 
-    StrandThree.drawMarker(player, 'red');
+    //StrandThree.drawMarker(player, 'red');
     StrandThree.drawMarker(world, 'blue');
     StrandThree.drawMarker(palyerinworld, 'green');
 
+
+
+
     if (parseInt(key) > 0) {
 
-      world.prec = dbData[key - 1].positionWorld;
-      player.prec = dbData[key - 1].positionPlayer;
-      palyerinworld.prec.position = addPos(world.prec.position, player.prec.position);
+      world.prec = dbData[key - 1].world;
+      player.prec = dbData[key - 1].player;
+      palyerinworld.prec.position = addPos(world.prec, player.prec);
 
-      StrandThree.drawLineBetweenCoord(player.prec, player, 'red');
+      //StrandThree.drawLineBetweenCoord(player.prec, player, 'red');
       StrandThree.drawLineBetweenCoord(world.prec, world, 'blue');
       StrandThree.drawLineBetweenCoord(palyerinworld.prec, palyerinworld, 'green');
     }
