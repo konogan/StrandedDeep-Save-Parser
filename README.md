@@ -4,7 +4,7 @@ SDSP is a node express programm for watching save.json file in [Stranded Deep] p
 After a backup, the map is updated, the path traveled by the Player Characters emerges from backup to backup.
 
 ### Version
-0.0.1
+0.1.0
 
 ### Tech
 
@@ -21,6 +21,10 @@ You need npm installed:
 
 ```sh
 $ npm install
+```
+
+```sh
+update file config.js with your save path
 ```
 
 ```sh

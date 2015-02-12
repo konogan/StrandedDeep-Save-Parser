@@ -6,9 +6,6 @@ var camera, controls, scene, renderer, mouseVector; // THREE
 //var gui = new dat.GUI();
 var StrandThree = {};
 
-/** @type {Bool} biomes in 3D ? */
-StrandThree.display3d = true;
-
 /** @type {Bool} axis ? */
 StrandThree.showAxis = true;
 
@@ -19,7 +16,7 @@ StrandThree.displaySky = false;
 StrandThree.tileSize = 256;
 
 /** @type {Number}  espacement entre les elements */
-StrandThree.tileSpacer = 1;
+StrandThree.tileSpacer = .1;
 
 /** @type {Array}   */
 StrandThree.tiles = [];
@@ -38,28 +35,35 @@ StrandThree.jumpOnClick = false;
  */
 StrandThree.drawGrid = function(data) {
   for (nodeKey in data) {
-    if (StrandThree.display3d) {
-      StrandThree.draw3DNode(data[nodeKey], nodeKey, true);
-    }
-    else {
-      StrandThree.draw2DNode(data[nodeKey]);
+    var nodeData = data[nodeKey];
+    nodeData.position.x = nodeData.position.x * 1;
+    nodeData.position.z = nodeData.position.z * -1;
+    StrandThree.draw3DNode(nodeData, nodeKey, true);
+    if (nodeData.fullyGenerated) {
+      StrandThree.drawGridObjects(nodeData);
     }
     if (data[nodeKey].type === 'ISLAND') {
-      // add island geometry
-      var isle = StrandThreeObj.ISLAND(data[nodeKey]);
-      isle.transparency = .2;
-      //StrandThree.Objects.push(isle);
+      var isle = StrandThreeObj.ISLAND(nodeData);
       scene.add(isle);
-    }
-    if (nodeKey == 3) {
-      //break;
     }
   }
 };
 
-
-
-
+/**
+ * [drawGridObjects description]
+ * @param  {Array} data array of objcts in biome
+ * @return {[type]}      [description]
+ */
+StrandThree.drawGridObjects = function(nodeData) {
+  console.log(nodeData.position);
+  for (o in nodeData.objects) {
+    var object = nodeData.objects[o];
+    nodeData.position.y = -129;
+    object.position = addPos(object, nodeData);
+    var model = StrandThreeObj.OBJECT(object);
+    scene.add(model);
+  }
+}
 
 /**
  * dessine un biome en 3D avec DEBUG
@@ -69,11 +73,11 @@ StrandThree.drawGrid = function(data) {
  * @return {void}
  */
 StrandThree.draw3DNode = function(data, texte , debug) {
+  var heightOfNode = data.position.height * 1;
+  var TEX;
+
   if (!debug) {
-    var tile = new THREE.Mesh(
-    new THREE.BoxGeometry(StrandThree.tileSize - StrandThree.tileSpacer, StrandThree.tileSize - StrandThree.tileSpacer, StrandThree.tileSize - StrandThree.tileSpacer),
-    StrandThreeObj.biomesTypes[data.type].material
-  );
+    TEX = StrandThreeObj.biomesTypes[data.type].material;
   }
   else {
     var canvas = document.createElement('canvas');
@@ -81,11 +85,18 @@ StrandThree.draw3DNode = function(data, texte , debug) {
     canvas.height = 255;
     var context = canvas.getContext('2d');
     context.font = '10pt Arial';
-    context.fillStyle = 'red';
-    context.fillRect(0, 0, canvas.width, canvas.height);
     context.fillStyle = 'white';
-    context.fillRect(10, 10, canvas.width - 20, canvas.height - 20);
-    context.fillStyle = 'black';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    if (data.fullyGenerated) {
+      context.fillStyle = '#0489B1';
+      context.fillRect(2, 2, canvas.width - 4, canvas.height - 4);
+      context.fillStyle = 'black';
+    }
+    else {
+      context.fillStyle = '#0489B1';
+      context.fillRect(2, 2, canvas.width - 4, canvas.height - 4);
+      context.fillStyle = 'white';
+    }
     context.textAlign = 'center';
     context.textBaseline = 'middle';
     context.fillText(texte + ' - ' + data.type, canvas.width / 2, canvas.height / 2);
@@ -93,23 +104,36 @@ StrandThree.draw3DNode = function(data, texte , debug) {
     var texture1 = new THREE.Texture(canvas);
     texture1.needsUpdate = true;
 
-    var material1 = new THREE.MeshBasicMaterial({map: texture1, side: THREE.DoubleSide });
-    material1.transparent = true;
 
 
-    var tile = new THREE.Mesh(
-      new THREE.BoxGeometry(StrandThree.tileSize - StrandThree.tileSpacer, StrandThree.tileSize - StrandThree.tileSpacer, StrandThree.tileSize - StrandThree.tileSpacer, 1, 1, 1),
-      material1
-    );
+     TEX = new THREE.MeshLambertMaterial({
+      map: texture1,
+      side: THREE.DoubleSide,
+      opacity: .7
+    });
+     if (data.fullyGenerated) {
+      TEX.transparent = true;
+     }
+     else {
+      TEX.transparent = false;
+     }
   }
+
+  var BOX = new THREE.BoxGeometry(
+        StrandThree.tileSize - StrandThree.tileSpacer,
+        StrandThree.tileSize / 2 ,
+        StrandThree.tileSize - StrandThree.tileSpacer,
+        1, 1, 1);
+
+  var tile = new THREE.Mesh(BOX, TEX);
+
   tile.overdraw = true;
+  tile.receiveShadow = true;
   tile.position.x = data.position.x;
-  tile.position.y = data.position.y - (StrandThree.tileSize) + data.position.height;
+  tile.position.y = - (StrandThree.tileSize / 4) ;
   tile.position.z = data.position.z;
-  tile.material.side = THREE.DoubleSide;
-  if (!data.fullyGenerated) {
-    //tile.material.wireframe = 'grey';
-  }
+
+
   tile.name = 'tile_' + data.id;
   StrandThree.tiles[data.id] = tile;
   StrandThree.Objects.push(StrandThree.tiles[data.id]);
@@ -117,31 +141,6 @@ StrandThree.draw3DNode = function(data, texte , debug) {
 };
 
 
-
-
-/**
- * dessine un biome en 2D
- * @param  {Object} data
- * @return {void}
- */
-StrandThree.draw2DNode = function(data) {
-
-  var tile = new THREE.Mesh(
-    new THREE.PlaneBufferGeometry(StrandThree.tileSize - StrandThree.tileSpacer, StrandThree.tileSize - StrandThree.tileSpacer),
-    StrandThreeObj.biomesTypes[data.type].material
-  );
-  tile.overdraw = true;
-  tile.position.x = data.position.x;
-  tile.position.y = data.position.y - (StrandThree.tileSize / 2) + data.position.height;
-  tile.position.z = data.position.z;
-  tile.material.side = THREE.DoubleSide;
-
-  tile.rotation.x = Math.PI / 2;
-  tile.name = 'tile_' + data.id;
-  StrandThree.tiles[data.id] = tile;
-  StrandThree.Objects.push(StrandThree.tiles[data.id]);
-  scene.add(tile);
-};
 
 
 
@@ -165,7 +164,7 @@ StrandThree.drawMarker = function(data, color) {
  * @return {void}
  */
 StrandThree.debugPath = function(dbData) {
-  StrandThree.showAxis();
+  //StrandThree.showAxis();
   var player = {};
   var world = {};
   var palyerinworld = {};
@@ -175,12 +174,17 @@ StrandThree.debugPath = function(dbData) {
 
   for (key in dbData) {
     player = dbData[key].player;
+    player.position.x = player.position.x * -1;
+    player.position.z = player.position.z * 1;
     world = dbData[key].world;
+
+    world.position.x = world.position.x * 1;
+    world.position.z = world.position.z * -1;
 
     palyerinworld.position = addPos(world, player);
 
     //StrandThree.drawMarker(player, 'red');
-    StrandThree.drawMarker(world, 'blue');
+    //StrandThree.drawMarker(world, 'blue');
     StrandThree.drawMarker(palyerinworld, 'green');
 
 
@@ -193,7 +197,7 @@ StrandThree.debugPath = function(dbData) {
       palyerinworld.prec.position = addPos(world.prec, player.prec);
 
       //StrandThree.drawLineBetweenCoord(player.prec, player, 'red');
-      StrandThree.drawLineBetweenCoord(world.prec, world, 'blue');
+      //StrandThree.drawLineBetweenCoord(world.prec, world, 'blue');
       StrandThree.drawLineBetweenCoord(palyerinworld.prec, palyerinworld, 'green');
     }
   }
@@ -226,25 +230,6 @@ StrandThree.showAxis = function() {
   StrandThree.axis.position.y = 50;
   scene.add(StrandThree.axis);
 };
-
-/**
- * Build a cube for test
- * @return {void}
- */
-StrandThree.test = function() {
-  var test = new THREE.Mesh(
-    new THREE.SphereGeometry(60, 64, 16, 0, 2 * Math.PI, 0, Math.PI / 2),
-    new THREE.MeshBasicMaterial({color: 'yellow', wireframe: false})
-    );
-  test.overdraw = true;
-  test.scale.x = 1;
-  test.scale.y = .1;
-  test.scale.z = 1;
-
-  scene.add(test);
-};
-
-
 
 
 /**
@@ -362,28 +347,40 @@ StrandThree.initThree = function() {
   //scene.fog = new THREE.FogExp2(0xcccccc, 0.0002);
 
   // lights
-  light = new THREE.PointLight(0xffffff);
-  light.position.set(0, 2500, 0);
+  light = new THREE.SpotLight(0xffffff);
+  light.position.set(0, 5500, 0);
+  light.castShadow = true;
+
+
+  light.shadowCameraNear = 1;
+  light.shadowCameraFar = 20000;
+  light.shadowCameraFov = 45;
+  light.shadowDarkness = 0.5;
+  light.shadowMapWidth = 2048;
+  light.shadowMapHeight = 2048;
+
   scene.add(light);
 
 
-    var imagePrefix = 'images/';
-    var directions = ['px', 'nx', 'py', 'ny', 'pz', 'nz'];
-    var imageSuffix = '.jpg';
-    var skyGeometry = new THREE.BoxGeometry(StrandThree.tileSize * 200, StrandThree.tileSize * 200, StrandThree.tileSize * 200);
-    light = new THREE.AmbientLight(0x222222);
-    scene.add(light);
-    var materialArray = [];
-    for (var i = 0; i < 6; i++)
-      materialArray.push(new THREE.MeshBasicMaterial({
-        map: THREE.ImageUtils.loadTexture(imagePrefix + directions[i] + imageSuffix),
-        side: THREE.BackSide
-      }));
-    var skyMaterial = new THREE.MeshFaceMaterial(materialArray);
-    StrandThree.skyBox = new THREE.Mesh(skyGeometry, skyMaterial);
-    StrandThree.skyBox.name = 'SKY';
-    StrandThree.skyBox.visible = StrandThree.displaySky;
-    scene.add(StrandThree.skyBox);
+
+
+  var imagePrefix = 'images/';
+  var directions = ['px', 'nx', 'py', 'ny', 'pz', 'nz'];
+  var imageSuffix = '.jpg';
+  var skyGeometry = new THREE.BoxGeometry(StrandThree.tileSize * 200, StrandThree.tileSize * 200, StrandThree.tileSize * 200);
+  light = new THREE.AmbientLight(0x222222);
+  scene.add(light);
+  var materialArray = [];
+  for (var i = 0; i < 6; i++)
+    materialArray.push(new THREE.MeshBasicMaterial({
+      map: THREE.ImageUtils.loadTexture(imagePrefix + directions[i] + imageSuffix),
+      side: THREE.BackSide
+    }));
+  var skyMaterial = new THREE.MeshFaceMaterial(materialArray);
+  StrandThree.skyBox = new THREE.Mesh(skyGeometry, skyMaterial);
+  StrandThree.skyBox.name = 'SKY';
+  StrandThree.skyBox.visible = StrandThree.displaySky;
+  scene.add(StrandThree.skyBox);
 
 
   // si les biomes ne sont pas en 3D on met un plan pour representer la mer que l'on recouvrira d'une grille
@@ -395,6 +392,8 @@ StrandThree.initThree = function() {
   renderer.setClearColor(0xffffff);
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.shadowMapEnabled = true;
+  renderer.shadowMapType = THREE.PCFSoftShadowMap;
 
   container = document.getElementById('container');
   container.appendChild(renderer.domElement);
