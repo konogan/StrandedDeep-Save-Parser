@@ -51,11 +51,9 @@ StrandThree.drawGrid = function(data) {
 
 /**
  * [drawGridObjects description]
- * @param  {Array} data array of objcts in biome
- * @return {[type]}      [description]
+ * @param  {Array} nodeData array of objcts in biome
  */
 StrandThree.drawGridObjects = function(nodeData) {
-  console.log(nodeData.position);
   for (o in nodeData.objects) {
     var object = nodeData.objects[o];
     nodeData.position.y = -129;
@@ -63,7 +61,7 @@ StrandThree.drawGridObjects = function(nodeData) {
     var model = StrandThreeObj.OBJECT(object);
     scene.add(model);
   }
-}
+};
 
 /**
  * dessine un biome en 3D avec DEBUG
@@ -104,8 +102,6 @@ StrandThree.draw3DNode = function(data, texte , debug) {
     var texture1 = new THREE.Texture(canvas);
     texture1.needsUpdate = true;
 
-
-
      TEX = new THREE.MeshLambertMaterial({
       map: texture1,
       side: THREE.DoubleSide,
@@ -130,9 +126,8 @@ StrandThree.draw3DNode = function(data, texte , debug) {
   tile.overdraw = true;
   tile.receiveShadow = true;
   tile.position.x = data.position.x;
-  tile.position.y = - (StrandThree.tileSize / 4) ;
+  tile.position.y = - (StrandThree.tileSize / 4);
   tile.position.z = data.position.z;
-
 
   tile.name = 'tile_' + data.id;
   StrandThree.tiles[data.id] = tile;
@@ -171,7 +166,6 @@ StrandThree.debugPath = function(dbData) {
   world.prec = {};
   player.prec = {};
   palyerinworld.prec = {};
-
   for (key in dbData) {
     player = dbData[key].player;
     player.position.x = player.position.x * -1;
@@ -185,9 +179,14 @@ StrandThree.debugPath = function(dbData) {
 
     //StrandThree.drawMarker(player, 'red');
     //StrandThree.drawMarker(world, 'blue');
-    StrandThree.drawMarker(palyerinworld, 'green');
 
 
+    if (key == dbData.length - 1) {
+      StrandThree.drawMarker(palyerinworld, 'red');
+    }
+    else {
+      StrandThree.drawMarker(palyerinworld, 'green');
+    }
 
 
     if (parseInt(key) > 0) {
