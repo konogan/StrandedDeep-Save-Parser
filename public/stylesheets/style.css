@@ -7,6 +7,10 @@ html,body
   overflow: hidden;
 }
 
-#container {
-
+#container, canvas {
+ position: absolute;
+ top :0;
+ left: 0;
+ right: 200px;
+ bottom: 0;
 }

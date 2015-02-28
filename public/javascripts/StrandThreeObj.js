@@ -30,30 +30,50 @@ StrandThreeObj.biomesTypes['SHALLOW_SAND_PLAINS'] = {
   color: ''
 };
 
-
-
-
 /**
  * Retourne la geometrie d'une ile
  * @param {Object} data
  * @return {Object}
  */
 StrandThreeObj.ISLAND = function(data) {
-
-  var ISLAND = new THREE.Mesh(
-    new THREE.CylinderGeometry(40, 40, .1, 50, 50, false),
-    new THREE.MeshLambertMaterial({color: 'yellow'})
-  );
+  // si lile est fullygenerated on va iterer sur les positions des palmiers
+  // pour en faire une moyenne afin de palcer le centre de l'ile et la taille max
+  if (data.fullyGenerated) {
+    var ISLAND = new THREE.Mesh();
+    for (o in data.objects) {
+      var object = data.objects[o];
+      if (object.type === 'PALM_TREE_1' ||
+        object.type === 'PALM_TREE_2' ||
+        object.type === 'PALM_TREE_3' ||
+        object.type === 'PALM_TREE_4')
+      {
+       var little = new THREE.Mesh(
+          new THREE.CylinderGeometry(12, 10, .2, 50, 50, false),
+          new THREE.MeshLambertMaterial({color: 'rgb(235,244,140)'})
+        );
+        little.position.x = object.position.x - data.position.x;
+        little.position.z = object.position.z - data.position.z;
+        ISLAND.add(little);
+      }
+    }
+    ISLAND.isFullyGenerated = true;
+  }
+  else {
+    var ISLAND = new THREE.Mesh(
+      new THREE.CylinderGeometry(40, 40, .2, 50, 50, false),
+      new THREE.MeshLambertMaterial({color: 'yellow'})
+    );
+    ISLAND.isFullyGenerated = false;
+  }
+  ISLAND.position.x = data.position.x;
+  ISLAND.position.y = 0;
+  ISLAND.position.z = data.position.z;
   ISLAND.overdraw = true;
   ISLAND.receiveShadow = true;
   ISLAND.castShadow = false;
-  ISLAND.name = 'ISLAND ' + data.id;
-  ISLAND.position.x = data.position.x;
-  ISLAND.position.y = .1;
-  ISLAND.position.z = data.position.z;
+  ISLAND.key = 'ISLAND_' + data.id;
   return ISLAND;
 };
-
 
 
 /**
@@ -86,6 +106,7 @@ StrandThreeObj.MARKER = function(data, color) {
  * @return {Object}
  */
 StrandThreeObj.OBJECT = function(dataObject) {
+
   var MESH;
   var MATE;
   var DecalageHeight = 0;
@@ -97,9 +118,17 @@ StrandThreeObj.OBJECT = function(dataObject) {
       case 'SHIPWRECK_4A':
       case 'SHIPWRECK_5A':
       case 'SHIPWRECK_6A':
+      case 'SHIPWRECK_7A':
+      case 'RowBoat_3':
         MESH = new THREE.BoxGeometry(10, 10, 10);
         MATE = new THREE.MeshBasicMaterial({color: 'yellow', wireframe: false, opacity: .8, transparent: false});
         DecalageHeight = 5;
+        break;
+
+      case 'FOUNDATION':
+        MESH = new THREE.BoxGeometry(2, 2.7, 2);
+        MATE = new THREE.MeshBasicMaterial({color: 'GREY', wireframe: false, transparent: false});
+        DecalageHeight = -2;
         break;
       case 'PALM_TREE_1':
         MESH = new THREE.BoxGeometry(.35, 4, .35);
@@ -153,6 +182,12 @@ StrandThreeObj.OBJECT = function(dataObject) {
         MESH = new THREE.TorusGeometry(2, .3, 16, 100);
         MATE = new THREE.MeshBasicMaterial({color: 'orange', wireframe: false, opacity: .8, transparent: false});
         DecalageHeight = .15;
+
+        break;
+      case 'PLANEWRECK':
+        MESH = new THREE.BoxGeometry(10, 10, 10);
+        MATE = new THREE.MeshBasicMaterial({color: 'yellow', wireframe: false, opacity: .8, transparent: false});
+        DecalageHeight = 10;
         break;
       default:
         invisible = true;
@@ -160,21 +195,31 @@ StrandThreeObj.OBJECT = function(dataObject) {
 
   if (!invisible) {
     var OBJECT = new THREE.Mesh(MESH, MATE);
-
     OBJECT.overdraw = true;
     OBJECT.castShadow = true;
     OBJECT.receiveShadow = false;
     OBJECT.name = '';
+
     OBJECT.position.x = dataObject.position.x;
     OBJECT.position.y = dataObject.position.y + DecalageHeight;
     OBJECT.position.z = dataObject.position.z;
-    OBJECT.rotation.x = dataObject.rotation.x;
-    OBJECT.rotation.y = dataObject.rotation.y;
-    OBJECT.rotation.z = dataObject.rotation.z;
-    // OBJECT.rotation.w = data.rotation.w;
+
+
+    var rotation = new THREE.Euler().setFromQuaternion(dataObject.rotation);
+
+    OBJECT.rotation.x = rotation.x;
+    OBJECT.rotation.y = rotation.y;
+    OBJECT.rotation.z = rotation.z;
+    if (dataObject.type == 'RAFT_V1') {
+       OBJECT.rotation.z = Math.PI / 2;
+    }
+
     OBJECT.scale.x = dataObject.scale.x;
     OBJECT.scale.y = dataObject.scale.y;
     OBJECT.scale.z = dataObject.scale.z;
+
+    OBJECT.key = dataObject.originalKey;
+
     return OBJECT;
   }
 

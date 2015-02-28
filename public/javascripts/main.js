@@ -1,28 +1,25 @@
-
 var io = io.connect();
 
+io.on('setObjects', function(Objects) {
+    console.log('setObjects', Objects);
+});
+
+io.on('setBiomes', function(Biomes) {
+    console.log('setBiomes', Biomes);
+});
+
+io.on('setGrid', function(Grid) {
+  console.log('setGrid');
+  StrandThree.drawGrid(Grid);
+});
+
+io.on('setPlayerPath', function(Path) {
+  console.log('setPlayerPath');
+  StrandThree.drawPlayerPath(Path);
+});
 
 $(function() {
-  io.emit('dom ready');
-
+  io.emit('DOM_READY');
   StrandThree.initThree();
-  //initGui();
-
-  // Listen for  events.
-
-  //io.on('showAxis', StrandThree.showAxis);
-
-  io.on('drawGrid', function(gridData) {
-    StrandThree.drawGrid(gridData);
-  });
-
-  io.on('drawPlayerPath', function(dbData) {
-    //StrandThree.drawPlayerPath(dbData);
-    StrandThree.debugPath(dbData);
-  });
-
-  io.on('drawPlayer', function(data) {
-    //StrandThree.drawPlayer(data);
-  });
 
 });
