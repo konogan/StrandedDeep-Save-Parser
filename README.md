@@ -42,7 +42,7 @@ License
 MIT
 
 
-**Free Software, Hell Yeah!**
+**Free Software**
 
 [moment]:https://github.com/moment/moment
 [nedb]:https://github.com/louischatriot/nedb
